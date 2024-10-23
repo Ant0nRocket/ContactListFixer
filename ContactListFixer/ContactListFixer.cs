@@ -6,37 +6,17 @@ using Outlook = Microsoft.Office.Interop.Outlook;
 namespace ContactListFixer
 {
     /*
-     
-    Dim obApp As Application
-    Dim olContacts As Outlook.Items
-    Dim obj As Object
-    Dim oContact As Outlook.ContactItem
-    Dim strName As String
-    
-    Set olContacts = Session.GetDefaultFolder(olFolderContacts).Items
-    
-    For Each obj In olContacts
-        If TypeName(obj) = "ContactItem" Then
-            Set oContact = obj
-            With oContact
-                strName = .LastNameAndFirstName & " (" & .Email1Address & ")"
-                .Email1DisplayName = strName
-                
-                If Not .Email2Address = "" Then
-                    strName = .LastNameAndFirstName & " (" & .Email2Address & ")"
-                    .Email2DisplayName = strName
-                End If
-                
-                If Not .Email3Address = "" Then
-                    strName = .LastNameAndFirstName & " (" & .Email3Address & ")"
-                    .Email3DisplayName = strName
-                End If
-                
-                .Save
-            End With
-        End If
-    Next
-     
+     * ContactListFixer
+     * 
+     * Небольшой плагин для Outlook, по таймеру меняющий "DisplayName" контактов.
+     * Проблема в том, что Outlook как-то загадочно хранит контакты и искать их по фамилии
+     * (а создавая письмо рефлекторно начинается писать фамилию) просто невозможно, потому что
+     * поиск идёт по полю "Хранить как" для первого адреса электронной почты.
+     * Этот аддон кадые 60 секунд перетряхивает контакты и переделывает нужное поле, ремонтируя
+     * тем самым нормальный поиск.
+     * 
+     * Автор: Стефаняк Антон Юрьевич / Ant0nRocket / anton.stephanyak@ya.ru
+     * 
      */
 
     public partial class ContactListFixer
@@ -50,21 +30,23 @@ namespace ContactListFixer
 
         private void Application_Startup()
         {
-            timer = new System.Timers.Timer(10000);
+            timer = new System.Timers.Timer(60000);
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            timer.Stop();
+            timer.Stop(); // остановим таймер на время работы с контактами
+
             var contactsItems = Application.Session.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderContacts).Items;
             foreach (var obj in contactsItems)
             {
                 if (obj is Outlook.ContactItem contact)
                     ChangeContactDisplayName(contact);
             }
-            timer.Start();
+
+            timer.Start(); // всё сделано, запускаем таймер
         }
 
         private void ChangeContactDisplayName(ContactItem contact)
